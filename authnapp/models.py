@@ -4,6 +4,7 @@ from django.db import models
 from datetime import timedelta
 from django.utils.timezone import now
 
+
 class ShopUser(AbstractUser):
     avatar = models.ImageField(upload_to="users_avatars", blank=True)
     age = models.PositiveIntegerField(verbose_name="возраст", default=18)

@@ -69,9 +69,10 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            ],
+                "mainapp.context_processors.basket",
+            ]
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "geekshop.wsgi.application"
@@ -94,16 +95,16 @@ DATABASES = {
 if not DEBUG:
     AUTH_PASSWORD_VALIDATORS = [
         {
-            "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+            "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
         },
         {
-            "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+            "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"
         },
         {
-            "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+            "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"
         },
         {
-            "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+            "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
         },
     ]
 else:
@@ -155,8 +156,8 @@ EMAIL_USE_SSL = False
 # If server support TLS:
 # EMAIL_USE_TLS = True
 
-#EMAIL_HOST_USER = "django@geekshop.local"
-#EMAIL_HOST_PASSWORD = "geekshop"
+# EMAIL_HOST_USER = "django@geekshop.local"
+# EMAIL_HOST_PASSWORD = "geekshop"
 # For debugging: python -m smtpd -n -c DebuggingServer localhost:25
 EMAIL_HOST_USER = None
 EMAIL_HOST_PASSWORD = None
