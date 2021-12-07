@@ -55,13 +55,13 @@ class Order(models.Model):
         self.is_active = False
         self.save()
 
-
-class OrderItemQuerySet(models.QuerySet):
-    def delete(self, *args, **kwargs):
-        for object in self:
-            object.product.quantity += object.quantity
-            object.product.save()
-        super(OrderItemQuerySet, self).delete(*args, **kwargs)
+# Использовали при переопределении методов
+# class OrderItemQuerySet(models.QuerySet):
+#     def delete(self, *args, **kwargs):
+#         for object in self:
+#             object.product.quantity += object.quantity
+#             object.product.save()
+#         super(OrderItemQuerySet, self).delete(*args, **kwargs)
 
 
 class OrderItem(models.Model):
@@ -69,7 +69,8 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, verbose_name="продукт", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name="количество", default=0)
 
-    objects = OrderItemQuerySet.as_manager()
+    # Использовали при переопределении методов
+    # objects = OrderItemQuerySet.as_manager()
 
     def get_product_cost(self):
         return self.product.price * self.quantity
@@ -78,17 +79,18 @@ class OrderItem(models.Model):
     def get_item(pk):
         return get_object_or_404(OrderItem, pk=pk)
 
-    # Object's saving method
-    def save(self, *args, **kwargs):
-        if self.pk:
-            self.product.quantity -= self.quantity - self.__class__.get_item(self.pk).quantity
-        else:
-            self.product.quantity -= self.quantity
-        self.product.save()
-        super(self.__class__, self).save(*args, **kwargs)
+    #  Использовали при переопределении методов
+    # # Object's saving method
+    # def save(self, *args, **kwargs):
+    #     if self.pk:
+    #         self.product.quantity -= self.quantity - self.__class__.get_item(self.pk).quantity
+    #     else:
+    #         self.product.quantity -= self.quantity
+    #     self.product.save()
+    #     super(self.__class__, self).save(*args, **kwargs)
 
-    # Object's deleting method
-    def delete(self):
-        self.product.quantity += self.quantity
-        self.product.save()
-        super(self.__class__, self).delete()
+    # # Object's deleting method
+    # def delete(self):
+    #     self.product.quantity += self.quantity
+    #     self.product.save()
+    #     super(self.__class__, self).delete()
