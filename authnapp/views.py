@@ -6,6 +6,7 @@ from django.shortcuts import HttpResponseRedirect, render
 from django.urls import reverse
 from authnapp.models import ShopUser
 from authnapp.forms import ShopUserEditForm, ShopUserLoginForm, ShopUserProfileEditForm, ShopUserRegisterForm
+from django.contrib.auth.decorators import login_required
 
 
 def login(request):
@@ -54,6 +55,7 @@ def register(request):
     return render(request, "authnapp/register.html", content)
 
 
+@login_required
 @transaction.atomic
 def edit(request):
     title = "редактирование"
