@@ -113,7 +113,7 @@ class ProductCategoryUpdateView(LoginRequiredMixin, UpdateView):
                 db_profile_by_type(self.__class__, "UPDATE", connection.queries)
 
         return super().form_valid(form)
-        
+
 
 class ProductCategoryDeleteView(LoginRequiredMixin, DeleteView):
     model = ProductCategory
@@ -198,6 +198,7 @@ def product_delete(request, pk):
 from django.db import connection
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+
 
 def db_profile_by_type(prefix, type, queries):
     update_queries = list(filter(lambda x: type in x["sql"], queries))
