@@ -8,6 +8,9 @@ from django.urls import reverse
 from basketapp.models import Basket
 from mainapp.models import Product
 
+from django.db import connection
+from django.db.models import F
+
 
 @login_required
 def basket(request):
@@ -26,10 +29,14 @@ def basket_add(request, pk):
 
     if not basket:
         basket = Basket(user=request.user, product=product)
-
-    basket.quantity += 1
+        basket.quantity += 1
+    else:
+        basket.quantity = F("quantity") + 1
     basket.save()
 
+    update_queries = list(filter(lambda x: 'UPDATE' in x['sql'], connection.queries))
+    print(f'query basket_add: {update_queries}')
+    
     return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
 
