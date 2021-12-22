@@ -57,19 +57,11 @@ class Command(BaseCommand):
         # Second: we need to annotate every object of OrderItem model with virtual field with value of discount
         test_orders = (
             OrderItem.objects.annotate(
-                action_order=Case(
-                    action_1__order,
-                    action_2__order,
-                    action_expired__order,
-                    output_field=IntegerField(),
-                )
+                action_order=Case(action_1__order, action_2__order, action_expired__order, output_field=IntegerField())
             )
             .annotate(
                 total_discount=Case(
-                    action_1__price,
-                    action_2__price,
-                    action_expired__price,
-                    output_field=DecimalField(),
+                    action_1__price, action_2__price, action_expired__price, output_field=DecimalField()
                 )
             )
             .order_by("action_order", "total_discount")
