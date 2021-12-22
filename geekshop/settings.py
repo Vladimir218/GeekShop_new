@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = "3@(__8%0**cfitmonhao8dryf-kzti-pkb#6tc!o!jwr#4-1qz"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False if os.getenv("DJANGO_PRODUCTION", default=None) else True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     "authnapp",
     "basketapp",
     "adminapp",
+    "social_django",
+    "ordersapp",
 ]
 
 # Auth model
@@ -50,7 +52,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -69,9 +71,13 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            ],
+                "mainapp.context_processors.basket",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
+                "django.template.context_processors.media",
+            ]
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "geekshop.wsgi.application"
@@ -80,31 +86,46 @@ WSGI_APPLICATION = "geekshop.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "NAME": "geekshop",
+            "ENGINE": "django.db.backends.postgresql",
+            "USER": "django",
+            "PASSWORD": "geekbrains",
+            "HOST": "localhost",
+        }
+    }
 
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
+if not DEBUG:
+    AUTH_PASSWORD_VALIDATORS = [
+        {
+            "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        },
+        {
+            "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"
+        },
+        {
+            "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"
+        },
+        {
+            "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
+        },
+    ]
+else:
+    # Set simple password for debug
+    AUTH_PASSWORD_VALIDATORS = []
 
 
 # Internationalization
@@ -126,7 +147,11 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
+# In common case STATIC_ROOT can not be in STATICFILES_DIRS
+if DEBUG:
+    STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 # Media files
 MEDIA_URL = "/media/"
@@ -136,3 +161,79 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Set login path:
 #   https://docs.djangoproject.com/en/2.2/ref/settings/#login-url
 LOGIN_URL = "authnapp:login"
+
+DOMAIN_NAME = "http://localhost:8000"
+
+# Read about sending email:
+#   https://docs.djangoproject.com/en/2.2/topics/email/
+
+# Full list of email settings:
+#   https://docs.djangoproject.com/en/2.2/ref/settings/#email
+EMAIL_HOST = "localhost"
+EMAIL_PORT = "25"
+
+EMAIL_USE_SSL = False
+# If server support TLS:
+# EMAIL_USE_TLS = True
+
+# EMAIL_HOST_USER = "django@geekshop.local"
+# EMAIL_HOST_PASSWORD = "geekshop"
+# For debugging: python -m smtpd -n -c DebuggingServer localhost:25
+EMAIL_HOST_USER = None
+EMAIL_HOST_PASSWORD = None
+
+# Email as files
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = "tmp/email-messages/"
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "social_core.backends.github.GithubOAuth2",
+)
+
+import json
+
+with open(
+    os.path.join(BASE_DIR, "tmp", "secrets", "github.json"), "r"
+) as secrets:
+    github_auth = json.load(secrets)
+
+SOCIAL_AUTH_GITHUB_KEY = github_auth["client_id"]
+SOCIAL_AUTH_GITHUB_SECRET = github_auth["client_secret"]
+
+# Django Debug Toolbar --->
+# if DEBUG:
+#     INSTALLED_APPS.extend(
+#         ["debug_toolbar", "template_profiler_panel", "django_extensions"]
+#     )
+
+
+# if DEBUG:
+#     MIDDLEWARE.extend(["debug_toolbar.middleware.DebugToolbarMiddleware"])
+
+# # Debgu tool bar settings
+# if DEBUG:
+
+#     def show_toolbar(request):
+#         return True
+
+#     DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": show_toolbar}
+
+#     DEBUG_TOOLBAR_PANELS = [
+#         # "ddt_request_history.panels.request_history.RequestHistoryPanel",
+#         "debug_toolbar.panels.versions.VersionsPanel",
+#         "debug_toolbar.panels.timer.TimerPanel",
+#         "debug_toolbar.panels.settings.SettingsPanel",
+#         "debug_toolbar.panels.headers.HeadersPanel",
+#         "debug_toolbar.panels.request.RequestPanel",
+#         "debug_toolbar.panels.sql.SQLPanel",
+#         "debug_toolbar.panels.templates.TemplatesPanel",
+#         "debug_toolbar.panels.staticfiles.StaticFilesPanel",
+#         "debug_toolbar.panels.cache.CachePanel",
+#         "debug_toolbar.panels.signals.SignalsPanel",
+#         "debug_toolbar.panels.logging.LoggingPanel",
+#         "debug_toolbar.panels.redirects.RedirectsPanel",
+#         "debug_toolbar.panels.profiling.ProfilingPanel",
+#         "template_profiler_panel.panels.template.TemplateProfilerPanel",
+#     ]
+# <--- Django Debug Toolbar

@@ -8,6 +8,9 @@ from django.urls import reverse
 from basketapp.models import Basket
 from mainapp.models import Product
 
+from django.db import connection
+from django.db.models import F
+
 
 @login_required
 def basket(request):
@@ -26,9 +29,13 @@ def basket_add(request, pk):
 
     if not basket:
         basket = Basket(user=request.user, product=product)
-
-    basket.quantity += 1
+        basket.quantity += 1
+    else:
+        basket.quantity = F("quantity") + 1
     basket.save()
+
+    update_queries = list(filter(lambda x: "UPDATE" in x["sql"], connection.queries))
+    print(f"query basket_add: {update_queries}")
 
     return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
 
@@ -43,7 +50,12 @@ def basket_remove(request, pk):
 @login_required
 def basket_edit(request, pk, quantity):
     if request.is_ajax():
-        print(f"{pk} - {quantity}")
+        try:
+            pk = int(pk)
+            quantity = int(quantity)
+        except Exception as exp:
+            print(f"Wrong input numbers! {exp}")
+            raise exp
         new_basket_item = Basket.objects.get(pk=int(pk))
 
         if quantity > 0:
